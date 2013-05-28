@@ -25,7 +25,7 @@ export ARP:=$(PWD)
 
 include platforms/$(PLATFORM)/defs.arp
 
-export HOST_OS:= linux
+export HOST_OS:= linux64
 
 export LIB_DIR:=-L $(SYSTEMC)/lib-$(HOST_OS) -L $(ARCHC_PATH)/lib \
   $(foreach ip, $(IP), -L $(ARP)/ip/$(ip)) \

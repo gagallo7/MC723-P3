@@ -12,35 +12,28 @@
  * http://www.lsc.ic.unicamp.br                       *
  ******************************************************/
  
-// Rodolfo editou aqui
-//
+
 const char *project_name="mips1";
 const char *project_file="mips1.ac";
-const char *archc_version="2.0beta1";
-const char *archc_options="-abi -dy ";
+const char *archc_version="2.2";
+const char *archc_options="-abi ";
 
+#include  <iostream>
 #include  <systemc.h>
+#include  "ac_stats_base.H"
 #include  "mips1.H"
-#include  "ac_tlm_mem.h"
-#include  "ac_tlm_router.h"
 
-using user::ac_tlm_mem;
-using user::ac_tlm_router;
+
 
 int sc_main(int ac, char *av[])
 {
 
   //!  ISA simulator
   mips1 mips1_proc1("mips1");
-  ac_tlm_mem mem("mem");
-  ac_tlm_router router("router");
 
 #ifdef AC_DEBUG
   ac_trace("mips1_proc1.trace");
 #endif 
-
-  router.DM_port(mem.target_export);
-  mips1_proc1.DM_port(router.target_export);
 
   mips1_proc1.init(ac, av);
   cerr << endl;
@@ -51,8 +44,7 @@ int sc_main(int ac, char *av[])
   cerr << endl;
 
 #ifdef AC_STATS
-  mips1_proc1.ac_sim_stats.time = sc_simulation_time();
-  mips1_proc1.ac_sim_stats.print();
+  ac_stats_base::print_all_stats(std::cerr);
 #endif 
 
 #ifdef AC_DEBUG
