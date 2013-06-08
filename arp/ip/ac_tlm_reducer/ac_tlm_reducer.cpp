@@ -19,16 +19,11 @@ ac_tlm_reducer::ac_tlm_reducer( sc_module_name module_name , int k ) :
     /// Binds target_export to the memory
     target_export( *this );
 
-    /// Initialize memory vector
-    memory = new uint8_t[ k ];
-    for(k=k-1;k>0;k--) memory[k]=0;
-
 }
 
 /// Destructor
 ac_tlm_reducer::~ac_tlm_reducer() {
 
-  delete [] memory;
 }
 
 /** Internal Write
@@ -39,7 +34,7 @@ ac_tlm_reducer::~ac_tlm_reducer() {
 */
 ac_tlm_rsp_status ac_tlm_reducer::writem( const uint32_t &a , const uint32_t &d )
 {
-  *((uint32_t *) &memory[a]) = CHANGE_ENDIAN(*((uint32_t *) &d));
+  sum += CHANGE_ENDIAN(*((uint32_t *) &d));
   return SUCCESS;
 }
 
@@ -51,7 +46,7 @@ ac_tlm_rsp_status ac_tlm_reducer::writem( const uint32_t &a , const uint32_t &d 
 */
 ac_tlm_rsp_status ac_tlm_reducer::readm( const uint32_t &a , uint32_t &d )
 {
-  *((uint32_t *) &d) = CHANGE_ENDIAN(*((uint32_t *) &memory[a]));
+  *((uint32_t *) &d) = CHANGE_ENDIAN(sum);
 
   return SUCCESS;
 }

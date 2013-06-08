@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int size, g = 0, * v1, * v2, sum, * reducer;
+int size, g = 0, *v1, *v2, sum;
 volatile int ready = 0, finish = 0;
 
 int main(int argc, char *argv[]) {
@@ -11,7 +11,6 @@ int main(int argc, char *argv[]) {
 	volatile int * lock;
 
 	lock = 6 * 1024 * 1024;
-	reducer = 7 * 1024 * 1024;
 
 	while(*lock);
 	*lock = 1;
@@ -21,8 +20,8 @@ int main(int argc, char *argv[]) {
 	while(*lock);
 	*lock = 1;
 	if (proc == 0) {
-		f1 = fopen("/home/ec2007/ra073203/home-ext/mc723/p3/arp/sw/reducer/v1", "r");
-		f2 = fopen("/home/ec2007/ra073203/home-ext/mc723/p3/arp/sw/reducer/v2", "r");
+		f1 = fopen("/home/ec2007/ra073203/home-ext/mc723/p3/arp/sw/dot_product/v1", "r");
+		f2 = fopen("/home/ec2007/ra073203/home-ext/mc723/p3/arp/sw/dot_product/v2", "r");
 		
 		fscanf(f1, " %d", &size);
 		fscanf(f2, " %d", &size);
@@ -48,7 +47,7 @@ int main(int argc, char *argv[]) {
 		r = v1[i] * v2[i];
 		while(*lock);
 		*lock = 1;
-		reducer[i + (8 * proc)] = r;
+		sum += r;
 		if (i + 8 >= size )
  			finish++;
 		*lock = 0;
@@ -57,7 +56,7 @@ int main(int argc, char *argv[]) {
 	while(finish < 8);
 	
 	if (proc == 0) {
-		printf("Resultado: %d\n", *reducer);
+		printf("Resultado: %d\n", sum);
 		free(v1);
 		free(v2);
 	}

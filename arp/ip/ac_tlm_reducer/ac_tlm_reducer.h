@@ -86,7 +86,7 @@ public:
   ~ac_tlm_reducer();
 
 private:
-  uint8_t *memory;
+  int sum;
 
 };
 
