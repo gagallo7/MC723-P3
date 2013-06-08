@@ -12,6 +12,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #define LOCK_ADDR (6 * 1024 * 1024)
+#define REDUCER_ADDR (7 * 1024 * 1024)
 
 // using statements
 using tlm::tlm_transport_if;
@@ -34,6 +35,7 @@ namespace user
 			//Storage devices
 			ac_tlm_port DM_port;
 			ac_tlm_port DL_port;
+			ac_tlm_port R_port;
 
 			/// Exposed port with ArchC interface
 			sc_export< ac_tlm_transport_if > target_export;
@@ -46,15 +48,14 @@ namespace user
 			 * @return A response packet to be send
 			 */
 			ac_tlm_rsp transport( const ac_tlm_req &request ) {
-				switch(request.addr) {
-					case LOCK_ADDR:
-						return DL_port->transport(request);
 
-					default:
-						return DM_port->transport(request);
-				}
+				if (request.addr == LOCK_ADDR)
+					return DL_port->transport(request);
+				else if(request.addr >= REDUCER_ADDR)
+					return R_port->transport(request);
+				else
+					return DM_port->transport(request);
 			}
-
 
 			/**
 			 * Default constructor.

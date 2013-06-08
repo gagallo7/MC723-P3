@@ -12,7 +12,7 @@
  * http://www.lsc.ic.unicamp.br                       *
  ******************************************************/
 
-// Rodolfo editou aqui
+// Stark editou aqui
 //
 const char *project_name="mips1";
 const char *project_file="mips1.ac";
@@ -24,10 +24,12 @@ const char *archc_options="-abi -dy ";
 #include  "ac_tlm_mem.h"
 #include  "ac_tlm_router.h"
 #include  "ac_tlm_locker.h"
+#include  "ac_tlm_reducer.h"
 
 using user::ac_tlm_mem;
 using user::ac_tlm_router;
 using user::ac_tlm_locker;
+using user::ac_tlm_reducer;
 
 int sc_main(int ac, char *av[])
 {
@@ -47,6 +49,7 @@ int sc_main(int ac, char *av[])
 	mips1 mips1_proc8("mips8");
 
 	ac_tlm_mem mem("mem");
+	ac_tlm_reducer reducer("reducer");
 	ac_tlm_router router("router");
 	ac_tlm_locker locker("locker");
 
@@ -56,6 +59,8 @@ int sc_main(int ac, char *av[])
 
 	router.DL_port(locker.target_export);
 	router.DM_port(mem.target_export);
+	router.R_port(reducer.target_export);
+
 	mips1_proc1.DM_port(router.target_export);
 	mips1_proc2.DM_port(router.target_export);
 	mips1_proc3.DM_port(router.target_export);
