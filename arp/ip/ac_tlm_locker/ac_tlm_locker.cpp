@@ -8,6 +8,8 @@
 
 #include "ac_tlm_locker.h"
 
+#define LOCK_ADDR ( 6 * 1024 * 1024 )
+
 //////////////////////////////////////////////////////////////////////////////
 
 /// Namespace to isolate memory from ArchC
@@ -19,29 +21,30 @@ ac_tlm_locker::ac_tlm_locker( sc_module_name module_name ) :
   target_export("iport")
 {
     /// Binds target_export to the memory
+    cout << "[LOCKER] Init..." << endl;
     target_export( *this );
 
     /// Initialize memory vector
-    memory = new uint8_t;
-    *memory = 0;
+    cout << "[LOCKER] Setting component address..." << endl;
+    memory = 0;
 
 }
 
 /// Destructor
 ac_tlm_locker::~ac_tlm_locker() {
 
-  delete [] memory;
+  //delete memory;
 }
 
 /** Internal Write
   * Note: Always write 32 bits
   * @param a is the address to write
   * @param d id the data being write
-  * @returns A TLM response packet with SUCCESS
 */
 ac_tlm_rsp_status ac_tlm_locker::writem( const uint32_t &d )
 {
-  *((uint32_t *) &memory) = *((uint32_t *) &d);
+  //*((uint32_t *) &memory) = *((uint32_t *) &d);
+  memory = d;
   return SUCCESS;
 }
 
@@ -53,8 +56,8 @@ ac_tlm_rsp_status ac_tlm_locker::writem( const uint32_t &d )
 */
 ac_tlm_rsp_status ac_tlm_locker::readm( uint32_t &d )
 {
-  *((uint32_t *) &d) = *((uint32_t *) &memory);
-
+  //*((uint32_t *) &d) = *((uint32_t *) &memory);
+  *((uint32_t *) &d) = memory;
   return SUCCESS;
 }
 

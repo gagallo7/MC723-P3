@@ -86,7 +86,7 @@ public:
   ~ac_tlm_locker();
 
 private:
-  uint8_t *memory;
+  volatile uint32_t memory;
 
 };
 
