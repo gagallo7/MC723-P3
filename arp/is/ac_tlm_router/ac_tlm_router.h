@@ -46,11 +46,13 @@ namespace user
 			 * @return A response packet to be send
 			 */
 			ac_tlm_rsp transport( const ac_tlm_req &request ) {
-				if (request.addr != LOCK_ADDR) {
-					return DM_port->transport(request);
+				switch(request.addr) {
+					case LOCK_ADDR:
+						return DL_port->transport(request);
+
+					default:
+						return DM_port->transport(request);
 				}
-                                cout << "Estamos no Locker!" << endl;
-				return DL_port->transport(request);
 			}
 
 

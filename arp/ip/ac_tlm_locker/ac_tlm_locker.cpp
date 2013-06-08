@@ -8,6 +8,7 @@
 
 #include "ac_tlm_locker.h"
 
+#define CHANGE_ENDIAN(value) (0x00000000 | (value << 24) | ((value << 8) & 0x00FF0000) | ((value >> 8) & 0x0000FF00) | (value >> 24))
 #define LOCK_ADDR ( 6 * 1024 * 1024 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -21,11 +22,9 @@ ac_tlm_locker::ac_tlm_locker( sc_module_name module_name ) :
   target_export("iport")
 {
     /// Binds target_export to the memory
-    cout << "[LOCKER] Init..." << endl;
     target_export( *this );
 
     /// Initialize memory vector
-    cout << "[LOCKER] Setting component address..." << endl;
     memory = 0;
 
 }
@@ -43,8 +42,7 @@ ac_tlm_locker::~ac_tlm_locker() {
 */
 ac_tlm_rsp_status ac_tlm_locker::writem( const uint32_t &d )
 {
-  //*((uint32_t *) &memory) = *((uint32_t *) &d);
-  memory = d;
+  memory = CHANGE_ENDIAN(d);
   return SUCCESS;
 }
 
@@ -56,8 +54,7 @@ ac_tlm_rsp_status ac_tlm_locker::writem( const uint32_t &d )
 */
 ac_tlm_rsp_status ac_tlm_locker::readm( uint32_t &d )
 {
-  //*((uint32_t *) &d) = *((uint32_t *) &memory);
-  *((uint32_t *) &d) = memory;
+  *((uint32_t *) &d) = CHANGE_ENDIAN(memory);
   return SUCCESS;
 }
 

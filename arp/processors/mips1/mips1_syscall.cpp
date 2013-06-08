@@ -36,84 +36,96 @@
 #include "mips1_syscall.H"
 #include "ac_utils.H"
 
+// Stack size in KB
+#define STACK_SIZE 64
+
+#define PROC_OFFSET (STACK_SIZE * 1024 * processorNumber)
+
+// The processor which is requesting a stack
+int processorNumber = 0;
+
 // 'using namespace' statement to allow access to all
 // mips1-specific datatypes
 using namespace mips1_parms;
 
 void mips1_syscall::get_buffer(int argn, unsigned char* buf, unsigned int size)
 {
-  unsigned int addr = RB[4+argn];
+	unsigned int addr = RB[4+argn];
 
-  for (unsigned int i = 0; i<size; i++, addr++) {
-    buf[i] = DM.read_byte(addr);
-  }
+	for (unsigned int i = 0; i<size; i++, addr++) {
+		buf[i] = DM.read_byte(addr);
+	}
 }
 
 void mips1_syscall::set_buffer(int argn, unsigned char* buf, unsigned int size)
 {
-  unsigned int addr = RB[4+argn];
+	unsigned int addr = RB[4+argn];
 
-//  for (unsigned int i = 0; i<size; i++, addr++) {
-//    DM.write_byte(addr, buf[i]);
-  for (unsigned int i = 0; i<size; i+=4, addr+=4) {
-    DM.write(addr, convert_endian(4, *(unsigned int *) &buf[i], false));
-  }
+	//  for (unsigned int i = 0; i<size; i++, addr++) {
+	//    DM.write_byte(addr, buf[i]);
+	for (unsigned int i = 0; i<size; i+=4, addr+=4) {
+		DM.write(addr, convert_endian(4, *(unsigned int *) &buf[i], false));
+	}
 }
 
 void mips1_syscall::set_buffer_noinvert(int argn, unsigned char* buf, unsigned int size)
 {
-  unsigned int addr = RB[4+argn];
+	unsigned int addr = RB[4+argn];
 
-  for (unsigned int i = 0; i<size; i+=4, addr+=4) {
-    DM.write(addr, *(unsigned int *) &buf[i]);
-  }
+	for (unsigned int i = 0; i<size; i+=4, addr+=4) {
+		DM.write(addr, *(unsigned int *) &buf[i]);
+	}
 }
 
 int mips1_syscall::get_int(int argn)
 {
-  return RB[4+argn];
+	return RB[4+argn];
 }
 
 void mips1_syscall::set_int(int argn, int val)
 {
-  RB[2+argn] = val;
+	RB[2+argn] = val;
 }
 
 void mips1_syscall::return_from_syscall()
 {
-  ac_pc = RB[31];
-  npc = ac_pc + 4;
+	ac_pc = RB[31];
+	npc = ac_pc + 4;
 }
 
 void mips1_syscall::set_prog_args(int argc, char **argv)
 {
-  int i, j, base;
+	int i, j, base;
 
-  unsigned int ac_argv[30];
-  char ac_argstr[512];
+	unsigned int ac_argv[30];
+	char ac_argstr[512];
 
-  base = AC_RAM_END - 512;
-  for (i=0, j=0; i<argc; i++) {
-    int len = strlen(argv[i]) + 1;
-    ac_argv[i] = base + j;
-    memcpy(&ac_argstr[j], argv[i], len);
-    j += len;
-  }
+	base = AC_RAM_END - 512 - PROC_OFFSET;
 
-  //Ajust %sp and write argument string
-  RB[29] = AC_RAM_END-512;
-  set_buffer(25, (unsigned char*) ac_argstr, 512);   //$25 = $29(sp) - 4 (set_buffer adds 4)
+	for (i=0, j=0; i<argc; i++) {
+		int len = strlen(argv[i]) + 1;
+		ac_argv[i] = base + j;
+		memcpy(&ac_argstr[j], argv[i], len);
+		j += len;
+	}
 
-  //Ajust %sp and write string pointers
-  RB[29] = AC_RAM_END-512-120;
-  set_buffer_noinvert(25, (unsigned char*) ac_argv, 120);
+	//Ajust %sp and write argument string
+	RB[29] = base;
+	set_buffer(25, (unsigned char*) ac_argstr, 512);   //$25 = $29(sp) - 4 (set_buffer adds 4)
 
-  //Set %sp
-  RB[29] = AC_RAM_END-512-128;
+	//Ajust %sp and write string pointers
+	RB[29] = base - 120;
+	set_buffer_noinvert(25, (unsigned char*) ac_argv, 120);
 
-  //Set %o0 to the argument count
-  RB[4] = argc;
+	//Set %sp
+	RB[29] = base - 128;
 
-  //Set %o1 to the string pointers
-  RB[5] = AC_RAM_END-512-120;
+	//Set %o0 to the argument count
+	RB[4] = argc;
+
+	//Set %o1 to the string pointers
+	RB[5] = base - 120;
+
+	processorNumber++;
+
 }
