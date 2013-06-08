@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SIZE 8
-
-int g = 0, v1[SIZE], v2[SIZE], sum;
-volatile int ready = 0, finish = 0;;
+int size, g = 0, *v1, *v2, sum;
+volatile int ready = 0, finish = 0;
 
 int main(int argc, char *argv[]) {
 
@@ -24,8 +22,14 @@ int main(int argc, char *argv[]) {
 	if (proc == 0) {
 		f1 = fopen("/home/ec2007/ra073203/home-ext/mc723/p3/arp/sw/reducer/v1", "r");
 		f2 = fopen("/home/ec2007/ra073203/home-ext/mc723/p3/arp/sw/reducer/v2", "r");
+		
+		fscanf(f1, " %d", &size);
+		fscanf(f2, " %d", &size);
 
-		for(i = 0; i < SIZE; i++) {
+		v1 = (int *) malloc(size * sizeof(int));
+		v2 = (int *) malloc(size * sizeof(int));
+
+		for(i = 0; i < size; i++) {
 			fscanf(f1, " %d", &v1[i]);
 			fscanf(f2, " %d", &v2[i]);
 		}
@@ -39,22 +43,23 @@ int main(int argc, char *argv[]) {
 
 	while(!ready);
 
-	inicio = proc * (SIZE / 8);
-	fim = (proc + 1) * (SIZE / 8);
-	for(i = inicio; i < fim; i++) {
+	for(i = proc; i < size; i += 8) {
 		r = v1[i] * v2[i];
 		while(*lock);
 		*lock = 1;
 		sum += r;
-		if (i == fim - 1)
-			finish++;
+		if (i + 8 >= size )
+ 			finish++;
 		*lock = 0;
-	}	
+	}
 
 	while(finish < 8);
 	
-	if (proc == 0)
+	if (proc == 0) {
 		printf("Resultado: %d\n", sum);
+		free(v1);
+		free(v2);
+	}
 
 	exit(0); // To avoid cross-compiler exit routine
 	return 0; // Never executed, just for compatibility
